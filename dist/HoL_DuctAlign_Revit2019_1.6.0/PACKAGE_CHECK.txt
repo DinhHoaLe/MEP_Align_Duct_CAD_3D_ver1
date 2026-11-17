@@ -1,0 +1,6 @@
+PASS
+Version=1.6.0.0
+RevitAPI=19
+EmbeddedIcons=Round16,Round32,Rec16,Rec32
+PayloadSHA256=261A1D5E5CB6F0A93A09A92190F7CE30944C0E67BE68460EE346EB3E8C0B637B
+No installation or model changes performed.

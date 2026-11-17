@@ -1,0 +1,13 @@
+REC ALIGN - BLOCK PICK TEST (CHUA DONG GOI)
+DLL: bin\BlockPickTest2023\HoL.DuctAlign.BlockPickTest2023.dll
+Lenh: MEP_Align_Round_Duct_3D_ver1.AlignRectDuctCommand
+Chon duct rec, click than/hinh hoc block CAD. Tool tu tim tim trong block.
+Nhan tim tu solid/mesh hop hoac tiet dien chu nhat cung size va huong.
+Voi block chi co net roi, center line can layer CENTER/CENTRE/CL/TIM.
+Khong tu xem mot canh bien la center line. CAD flatten mat nested block:
+chi nhan tim tu khoi chu nhat duoc click, khong quet toan DWG tim net gan nhat.
+Nhieu block/truc trung diem click: bao pick lai. Khong tu chon khi mo ho.
+Giu nguyen xu ly duct/fitting va rollback cua ban 1.5.2.
+Thu Undo, Esc va ket noi fitting sau khi can. Khong save/sync tu dong.
+6 ca hinh hoc tong hop da dat trong Revit 2023; chua test pick UI tren CAD thuc te.
+Bo cai trong dist van la ban on dinh 1.5.2, khong duoc dong goi lai trong lan sua nay.

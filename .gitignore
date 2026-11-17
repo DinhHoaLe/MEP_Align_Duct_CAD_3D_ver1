@@ -1,0 +1,19 @@
+# Visual Studio local state and build output
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build-only Autodesk references; retain source/provenance notes
+references/**/*.dll
+references/**/*.nupkg
+references/**/*.zip
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Keep the two release installers in dist/ under version control.

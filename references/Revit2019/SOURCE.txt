@@ -1,0 +1,5 @@
+Build-only references: Revit_API_x64 2019.0.0
+Source: https://www.nuget.org/packages/Revit_API_x64/2019.0.0
+Download: https://api.nuget.org/v3-flatcontainer/revit_api_x64/2019.0.0/revit_api_x64.2019.0.0.nupkg
+RevitAPI.dll and RevitAPIUI.dll: assembly major 19, Authenticode Valid.
+These reference DLLs are NOT included in either installer or ZIP.

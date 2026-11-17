@@ -1,0 +1,20 @@
+HAI BỘ CÀI RIÊNG - HoL Duct Align 1.6.0
+
+Revit 2019: dist\HoL_DuctAlign_Revit2019_1.6.0.zip
+Revit 2023: dist\HoL_DuctAlign_Revit2023_1.6.0.zip
+
+Mỗi bản gồm Round Align + Rec Align với icon riêng.
+Giải nén đúng phiên bản, đóng Revit tương ứng, chạy HoL_DuctAlign_Setup.exe.
+Mở lại Revit → HoL Tools → CAD Align.
+Hai bản cài vào Addins\2019 và Addins\2023 riêng, có thể cùng tồn tại.
+
+Cả hai đã build với đúng API và kiểm tra payload/icon.
+Bản 2019 chưa được thử trực tiếp trong Revit 2019 trên máy này.
+Hướng dẫn đầy đủ nằm trong từng ZIP.
+
+BUILD LẠI
+packaging\Build-Package.ps1                     : build cả hai
+packaging\Build-Package.ps1 -RevitVersion 2019  : chỉ bản 2019
+packaging\Build-Package.ps1 -RevitVersion 2023  : chỉ bản 2023
+Có thể truyền -RevitApiDir để dùng DLL tham chiếu tại vị trí khác.
+Thư mục references chỉ phục vụ build, không phân phối cùng bộ cài.
