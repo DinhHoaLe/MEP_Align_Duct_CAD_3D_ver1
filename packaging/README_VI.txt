@@ -1,46 +1,55 @@
-HoL ROUND + REC DUCT ALIGN
-Phiên bản 1.6.0 | Autodesk Revit 2023 | Windows x64 | .NET Framework 4.8
+HoL CAD ALIGN 1.7.0 — Revit 2023 — Windows x64 — .NET Framework 4.8
 
-CÀI ĐẶT / CẬP NHẬT
-1. Giải nén ZIP, đóng Revit 2023.
+CÀI MỚI / CẬP NHẬT
+1. Giải nén ZIP đúng năm Revit, đóng tất cả phiên Revit 2023.
 2. Chạy HoL_DuctAlign_Setup.exe → Cài / cập nhật.
-3. Mở Revit → HoL Tools → CAD Align.
-Hai nút Round Align và Rec Align có biểu tượng riêng, không cần Add-In Manager.
-Cài riêng cho tài khoản Windows hiện tại, không cần quyền admin.
+3. Mở lại Revit → HoL Tools → CAD Align: Round Align, Rec Align, Block Align.
+Không cần gỡ bản cũ đã cài bằng bộ cài HoL. Dùng lại manifest, AddInId và
+thư mục cũ, thay DLL bằng 1.7.0 nên không tạo thêm bộ nút trùng.
+Nếu ghi file thất bại, bộ cài cố khôi phục DLL và manifest trước đó.
+Cài cho tài khoản Windows hiện tại, không cần quyền admin.
+Cập nhật thủ công bằng bộ cài mới; không tự tải bản mới qua Internet.
+Bản từng chép thủ công vào nơi khác/ProgramData cần bỏ đăng ký thủ công
+để tránh trùng. Bộ cài không xóa add-in khác. Đóng Revit để bỏ DLL đã nạp
+bằng Add-In Manager hoặc nút thử tạm thời trong phiên làm việc.
 
 ROUND ALIGN
 Chọn duct tròn thẳng → pick mặt/cạnh thân khối CAD → căn XYZ.
-Khối CAD cần mặt trụ cùng đường kính và song song với duct.
+Khối CAD cần mặt trụ cùng đường kính, song song với duct.
 
-REC ALIGN - FLOW MỚI 1.6.0
-Chọn duct chữ nhật thẳng → click hình học/thân block CAD → tool tự lấy tim
-trong block đó để căn duct. Không cần pick trực tiếp đường center line.
-- Nhận tim từ solid/mesh hộp hoặc tiết diện chữ nhật phù hợp size và hướng.
-- Với nét rời: tìm center line trong cùng block trên layer CENTER/CENTRE/CL/TIM
-  (ví dụ DUCT_RECT_CENTER). Không tự xem cạnh biên là đường tim.
-- Ưu tiên reference của phần được click; hỗ trợ transform block lồng nhau.
-- Nhiều block/trục phù hợp: dừng và yêu cầu pick lại, tránh căn nhầm.
-- Nếu CAD đã flatten mất cấu trúc block, chỉ suy tim từ khối được click.
-Dịch duct cùng fitting nối trực tiếp; kiểm tra giữ kết nối cả phía ngoài fitting.
-Các đoạn ống nối khác có thể đổi chiều dài/hướng để giữ kết nối.
-Revit yêu cầu ngắt nối, lỗi/cảnh báo hoặc sai kết quả: hoàn tác toàn bộ.
+REC ALIGN — PICK TRỰC TIẾP ĐƯỜNG TIM
+Chọn duct chữ nhật thẳng → pick Line/Polyline thẳng làm đường tim CAD.
+Tim phải song song với duct; không yêu cầu tên layer hay cùng size CAD.
+Không chọn mặt/thân khối; không tự tách solid gộp hoặc tìm tim block.
+Giữ size, chiều dài và hướng duct đã chọn. Dịch cùng fitting nối trực tiếp;
+các đoạn duct nối khác có thể đổi chiều dài/hướng để giữ kết nối.
+
+BLOCK ALIGN
+Click mặt/cạnh block CAD → chọn family → căn gốc family vào gốc block XYZ.
+Giữ góc xoay. Lấy block con gần nhất chứa hình học được click, ghép đúng
+phép biến đổi các cấp block; không dùng tâm bounding box.
+CAD phải còn cấu trúc block; nếu đã flatten mất block con thì từ chối.
+Family nối duct/pipe: dời cùng cụm fitting trực tiếp, Revit điều chỉnh đoạn
+nối; kiểm tra kết nối cả mạng, vị trí và góc xoay sau di chuyển.
 
 CHUNG
-- CAD link/import trực tiếp trong project, không nằm trong RVT link.
-- Chỉ dịch; không xoay, đổi size hay kéo dài duct được chọn.
-- Esc lúc chọn để hủy; Undo một lần để hoàn tác. Không có bảng preview/xác nhận.
-- Không tự disconnect, save hoặc sync central. Pin/Group không được xử lý.
+Lỗi/cảnh báo Revit, mất kết nối, sai vị trí hoặc thay đổi phần tử không hợp
+lệ: rollback. Không tự disconnect, save hoặc sync central.
+Esc hủy chọn; Undo một lần hoàn tác lệnh. Không tự bỏ pin/tháo group hoặc
+bỏ ràng buộc host. CAD link/import trực tiếp, không nằm trong RVT link.
 
 GỠ CÀI ĐẶT
-Đóng Revit 2023 → chạy lại bộ cài → Gỡ cài đặt.
+Đóng Revit 2023 → chạy bộ cài → Gỡ cài đặt.
 Manifest: %APPDATA%\Autodesk\Revit\Addins\2023\HoL.RoundDuctAlign.addin
 DLL: %APPDATA%\Autodesk\Revit\Addins\2023\HoL.RoundDuctAlign\HoL.DuctAlign.Revit2023.dll
+Giữ tên đường dẫn cũ để cập nhật tương thích.
 
 KIỂM CHỨNG
-PACKAGE_CHECK.txt: đúng phiên bản DLL, Revit API 23, bốn icon và SHA-256.
-Block pick: 6 ca hình học tổng hợp đạt; 3 block CAD thực tế nhận đúng tim
-khi click ngoài đường tim 100–150 mm, sai số trục bằng 0; người dùng đã test OK.
-Kết nối: 4/5 mẫu dịch ngang 10 mm đạt, 1 mẫu rollback khi Revit yêu cầu ngắt nối.
-Các kiểm tra tự động không giữ thay đổi model. Không bảo đảm mọi CAD/mạng đều hợp lệ.
-Giữ bản sửa ribbon không dùng callback availability gây khóa nút.
-Bộ cài/DLL chưa ký số; không phân phối RevitAPI.dll/RevitAPIUI.dll.
+PACKAGE_CHECK.txt: phiên bản DLL, Revit API 23, icon nhúng và SHA-256.
+Block Align có icon vector bằng code; Round/Rec dùng icon nhúng.
+Rec pick tim: nhận line, bỏ điểm không chạm line, từ chối polyline gấp khúc.
+Duct 350 x 200 nối hai đầu thử dịch 10 mm: sai số 0, kết nối đạt.
+Block Align: hai family nối duct đã thử dịch, giữ góc xoay và kết nối.
+Các phép thử đều hoàn tác. Chưa có mẫu family nối pipe để thử thực tế.
+Không bảo đảm mọi mạng/ràng buộc cho phép di chuyển; lỗi sẽ rollback.
+DLL/bộ cài chưa ký số; không phân phối DLL Revit API.

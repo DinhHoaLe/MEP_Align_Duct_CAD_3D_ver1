@@ -88,3 +88,7 @@ HoL_DuctAlign_Revit2019_1.5.2
 HoL_DuctAlign_Revit2023_1.5.2
 HoL_DuctAlign_Revit2019_1.5.2.zip
 HoL_DuctAlign_Revit2023_1.5.2.zip
+Replaced by 1.7.0: D:\2_Revit\6_Working\00. Revit_API\Project\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\dist\HoL_DuctAlign_Revit2019_1.6.0
+Replaced by 1.7.0: D:\2_Revit\6_Working\00. Revit_API\Project\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\dist\HoL_DuctAlign_Revit2023_1.6.0
+Replaced by 1.7.0: D:\2_Revit\6_Working\00. Revit_API\Project\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\dist\HoL_DuctAlign_Revit2019_1.6.0.zip
+Replaced by 1.7.0: D:\2_Revit\6_Working\00. Revit_API\Project\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\MEP_Align_Round_Duct_3D_ver1\dist\HoL_DuctAlign_Revit2023_1.6.0.zip

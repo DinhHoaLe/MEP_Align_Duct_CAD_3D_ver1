@@ -36,20 +36,20 @@ namespace MEP_Align_Round_Duct_3D_ver1
                     throw new InvalidOperationException("Duct dang Pin hoac thuoc Group. Hay xu ly rang buoc truoc.");
                 Reference cr = ui.Selection.PickObject(ObjectType.PointOnElement, new CadFilter(),
                     round ? "Bam BE MAT/NET CAD gan doan ong dich. KHONG can bam duong tim. Esc: huy." :
-                    "Click vao THAN BLOCK DUCT CAD; tool tu tim center line trong block. Khong can pick net tim. Esc: huy.");
+                    "Pick truc tiep DUONG TIM CAD thang, song song voi duct. Esc: huy.");
                 ImportInstance cad = doc.GetElement(cr.ElementId) as ImportInstance;
                 if (cr.GlobalPoint == null) throw new InvalidOperationException("Khong doc duoc diem bam CAD. Thu trong view 3D.");
                 CadReader reader = new CadReader(doc, frame, cr.GlobalPoint);
                 List<AxisCandidate> candidates = reader.Read(cad, cr);
                 if (candidates.Count == 0)
                 {
-                    TaskDialog.Show("Khong xac dinh duoc center line khoi da pick", "Khoi tai diem pick khong co truc ong thang cung tiet dien/song song voi duct.\n" +
+                    TaskDialog.Show("Khong xac dinh duoc center line khoi da pick", "Khoi tai diem pick khong co truc ong thang phu hop/song song voi duct.\n" +
                         (round ? "Hay pick be mat hoac canh THAN khoi CAD. Mot net roi khong du de xac dinh khoi.\n\n" :
-                        "Click than block duct co khoi chu nhat cung size hoac center line tren layer CENTER/CENTRE/CL/TIM. Neu CAD bi flatten mat cau truc block, chi nhan tim khoi duoc click.\n\n") + reader.Diagnostics);
+                        "Pick truc tiep Line/Polyline thang lam duong tim CAD, song song voi duct. Khong pick mat/than khoi.\n\n") + reader.Diagnostics);
                     return Result.Cancelled;
                 }
                 if (candidates.Count != 1)
-                    throw new InvalidOperationException("Diem pick cham nhieu truc CAD. Hay pick lai giua than mot khoi de xac dinh duy nhat center line.");
+                    throw new InvalidOperationException("Diem pick cham nhieu truc CAD. Hay pick lai de xac dinh duy nhat center line.");
                 return ApplyAlignment(data.Application, ui, duct, frame, candidates[0]);
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException) { return Result.Cancelled; }
@@ -140,6 +140,10 @@ namespace MEP_Align_Round_Duct_3D_ver1
                         throw new InvalidOperationException("Kiem tra ket noi/phan tu khong dat. Tool se rollback.\n\n" + string.Join("\n", reasons));
                     }
                     Line actual = ((LocationCurve)duct.Location).Curve as Line;
+                    var actualFrame = DuctFrame.Create(duct);
+                    if (Math.Abs(actualFrame.Width - frame.Width) > Units.Ft(0.01) ||
+                        Math.Abs(actualFrame.Height - frame.Height) > Units.Ft(0.01))
+                        throw new InvalidOperationException("Size duct thay doi. Tool se rollback.");
                     if (actual == null || !target.ActualMatches(frame, actual, delta, xyOnly))
                         throw new InvalidOperationException("Vi tri/chieu dai sau dich khong dung du kien. Tool se rollback.");
                     if (group.Assimilate() != TransactionStatus.Committed) throw new InvalidOperationException("Khong the ket thuc transaction group.");

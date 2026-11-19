@@ -10,7 +10,7 @@ using System.Xml;
 
 internal static class Setup
 {
-    private const string Product = "HoL Round / Rec Duct Align | Revit 2023";
+    private const string Product = "HoL CAD Align | Revit 2023";
     private const string ClassName = "MEP_Align_Round_Duct_3D_ver1.RibbonApplication";
     private const string Dll = "HoL.DuctAlign.Revit2023.dll";
     private static readonly string Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Autodesk", "Revit", "Addins", "2023");
@@ -27,7 +27,7 @@ internal static class Setup
                 byte[] bytes = Payload();
                 // Validate the embedded DLL without installing or executing the Revit add-in.
                 Assembly asm = Assembly.ReflectionOnlyLoad(bytes);
-                bool version = asm.GetName().Version.ToString() == "1.6.0.0";
+                bool version = asm.GetName().Version.ToString() == "1.7.0.0";
                 bool api = asm.GetReferencedAssemblies().Any(a => a.Name == "RevitAPI" && a.Version.Major == 23);
                 string[] resources = asm.GetManifestResourceNames();
                 bool icons = resources.Contains("HoL.RoundAlign.RoundAlign16.png") && resources.Contains("HoL.RoundAlign.RoundAlign32.png") && resources.Contains("HoL.RoundAlign.RecAlign16.png") && resources.Contains("HoL.RoundAlign.RecAlign32.png");
@@ -36,7 +36,7 @@ internal static class Setup
                     throw new Exception("Payload verification failed.");
                 string hash;
                 using (SHA256 sha = SHA256.Create()) hash = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "");
-                File.WriteAllText(args[1], "PASS\r\nVersion=1.6.0.0\r\nRevitAPI=23\r\nEmbeddedIcons=Round16,Round32,Rec16,Rec32\r\nPayloadSHA256=" + hash + "\r\nNo installation or model changes performed.\r\n");
+                File.WriteAllText(args[1], "PASS\r\nVersion=1.7.0.0\r\nRevitAPI=23\r\nEmbeddedIcons=Round16,Round32,Rec16,Rec32\r\nPayloadSHA256=" + hash + "\r\nNo installation or model changes performed.\r\n");
                 return 0;
             }
             catch (Exception ex) { File.WriteAllText(args[1], "FAIL: " + ex); return 1; }
@@ -50,16 +50,16 @@ internal static class Setup
             form.MaximizeBox = false; form.MinimizeBox = false;
             form.Font = new Font("Segoe UI", 10);
             form.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
-            Label title = new Label { Text = "ROUND + REC DUCT ALIGN", Font = new Font("Segoe UI", 19, FontStyle.Bold), Location = new Point(24, 22), AutoSize = true };
-            Label intro = new Label { Text = "Phiên bản 1.6.0 • Autodesk Revit 2023 • Windows x64\n\nCài cho tài khoản Windows hiện tại, không cần quyền admin.\nĐóng Revit 2023 trước khi cài, cập nhật hoặc gỡ.\nSau khi cài: HoL Tools → CAD Align → Round Align / Rec Align.", Location = new Point(26, 72), Size = new Size(545, 115) };
+            Label title = new Label { Text = "ROUND / REC / BLOCK ALIGN", Font = new Font("Segoe UI", 19, FontStyle.Bold), Location = new Point(24, 22), AutoSize = true };
+            Label intro = new Label { Text = "Phiên bản 1.7.0 • Autodesk Revit 2023 • Windows x64\n\nCài cho tài khoản Windows hiện tại, không cần quyền admin.\nĐóng Revit 2023 trước khi cài, cập nhật hoặc gỡ.\nSau khi cài: HoL Tools → CAD Align → Round / Rec / Block Align.", Location = new Point(26, 72), Size = new Size(545, 115) };
             Label status = new Label { Text = "Sẵn sàng cài đặt.", Location = new Point(26, 191), Size = new Size(540, 60), ForeColor = Color.FromArgb(30, 91, 166) };
             Button install = new Button { Text = "Cài / cập nhật", Location = new Point(26, 275), Size = new Size(175, 40) };
             Button uninstall = new Button { Text = "Gỡ cài đặt", Location = new Point(216, 275), Size = new Size(160, 40) };
             Button close = new Button { Text = "Đóng", Location = new Point(394, 275), Size = new Size(170, 40) };
-            install.Click += delegate { Run(status, Install, "Đã cài xong. Mở Revit 2023 → HoL Tools → Round Align / Rec Align."); };
+            install.Click += delegate { Run(status, Install, "Đã cài xong. Mở Revit 2023 → HoL Tools → Round / Rec / Block Align."); };
             uninstall.Click += delegate
             {
-                if (MessageBox.Show("Gỡ HoL Round + Rec Duct Align khỏi Revit 2023?", Product, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("Gỡ HoL CAD Align khỏi Revit 2023?", Product, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                     Run(status, Uninstall, "Đã gỡ công cụ khỏi tài khoản hiện tại.");
             };
             close.Click += delegate { form.Close(); };
@@ -110,7 +110,7 @@ internal static class Setup
     private static XmlDocument MakeManifest()
     {
         XmlDocument xml = new XmlDocument();
-        xml.LoadXml("<RevitAddIns><AddIn Type='Application'><Name>HoL Round + Rec Duct Align</Name><Assembly/><AddInId>4B095FD2-B2E9-43DF-BE97-62C95F99B6A1</AddInId><FullClassName/>" +
+        xml.LoadXml("<RevitAddIns><AddIn Type='Application'><Name>HoL CAD Align</Name><Assembly/><AddInId>4B095FD2-B2E9-43DF-BE97-62C95F99B6A1</AddInId><FullClassName/>" +
             "<VendorId>HOL1</VendorId><VendorDescription>HoL MEP Tools</VendorDescription></AddIn></RevitAddIns>");
         xml.SelectSingleNode("//Assembly").InnerText = Path.Combine(Folder, Dll);
         xml.SelectSingleNode("//FullClassName").InnerText = ClassName;
@@ -123,13 +123,17 @@ internal static class Setup
         if (Convert.ToInt32(release) < 528040) throw new Exception("Cần .NET Framework 4.8 hoặc mới hơn trước khi dùng công cụ.");
         Directory.CreateDirectory(Folder);
         string dllPath = Path.Combine(Folder, Dll);
+        WriteInstallation(dllPath, Manifest, Payload(), MakeManifest());
+    }
+    internal static void WriteInstallation(string dllPath, string manifestPath, byte[] payload, XmlDocument manifest)
+    {
         byte[] previousDll = File.Exists(dllPath) ? File.ReadAllBytes(dllPath) : null;
-        byte[] previousManifest = File.Exists(Manifest) ? File.ReadAllBytes(Manifest) : null;
-        try { File.WriteAllBytes(dllPath, Payload()); MakeManifest().Save(Manifest); }
+        byte[] previousManifest = File.Exists(manifestPath) ? File.ReadAllBytes(manifestPath) : null;
+        try { File.WriteAllBytes(dllPath, payload); manifest.Save(manifestPath); }
         catch
         {
             if (previousDll == null) { if (File.Exists(dllPath)) File.Delete(dllPath); } else File.WriteAllBytes(dllPath, previousDll);
-            if (previousManifest == null) { if (File.Exists(Manifest)) File.Delete(Manifest); } else File.WriteAllBytes(Manifest, previousManifest);
+            if (previousManifest == null) { if (File.Exists(manifestPath)) File.Delete(manifestPath); } else File.WriteAllBytes(manifestPath, previousManifest);
             throw;
         }
     }

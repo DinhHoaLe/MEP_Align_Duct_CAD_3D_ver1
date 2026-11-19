@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlignCommand.cs" />
+    <Compile Include="BlockAlignCommand.cs" />
     <Compile Include="RectConnectionGuard.cs" />
     <Compile Include="RibbonApplication.cs" />
     <Compile Include="CadGeometry.cs" />

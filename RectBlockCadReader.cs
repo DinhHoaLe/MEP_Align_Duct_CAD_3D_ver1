@@ -79,6 +79,8 @@ namespace MEP_Align_Round_Duct_3D_ver1
             if (children.Count > 1)
                 throw new InvalidOperationException("Diem click cham nhieu block CAD. Hay click lai vao than block duct can can.");
             if (children.Count == 1 && children[0].Axes.Count > 0) return children[0];
+            // A directly hit rectangular body is authoritative, even inside a larger block.
+            if (hitBodies.Count > 0) { result.Axes = hitBodies; return result; }
 
             // Depth 0/1 can represent the entire DWG, not a single nested CAD block.
             // Never expand that scope to find an unrelated centreline elsewhere in the drawing.
@@ -107,7 +109,30 @@ namespace MEP_Align_Round_Duct_3D_ver1
         private void ReadRectBody(GeometryObject obj, Transform tr, string layer)
         {
             Solid solid = obj as Solid;
-            if (solid != null) { solids++; ReadSolid(solid, tr, layer); return; }
+            if (solid != null)
+            {
+                solids++;
+                // Revit can collapse thousands of disconnected CAD bodies into one Solid.
+                // Only accept a separated volume whose actual surface contains the click.
+                if (solid.Faces.Size > 6)
+                {
+                    var parts = SolidUtils.SplitVolumes(solid);
+                    try
+                    {
+                        if (parts.Count > 1)
+                        {
+                            var touched = parts.Where(p => ContainsHit(p.GetBoundingBox(), tr) && OnSolid(p, tr)).ToList();
+                            if (touched.Count > 1)
+                                throw new InvalidOperationException("Diem click cham nhieu khoi trong solid gop. Hay click giua mat than khoi can can.");
+                            if (touched.Count == 1) ReadSolid(touched[0], tr, layer);
+                            else Note("Khong co mat khoi tach nao tai diem click.");
+                            return;
+                        }
+                    }
+                    finally { foreach (var part in parts) part.Dispose(); }
+                }
+                ReadSolid(solid, tr, layer); return;
+            }
             Mesh mesh = obj as Mesh;
             if (mesh != null) { meshes++; Box(mesh.Vertices.Select(tr.OfPoint).ToList(), layer, "Tim khoi chu nhat trong block"); return; }
             PolyLine poly = obj as PolyLine;

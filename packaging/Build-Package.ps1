@@ -19,11 +19,11 @@ foreach ($year in $years) {
         if (!(Test-Path -LiteralPath $api)) { throw "Missing $api" }
         if ([Reflection.AssemblyName]::GetAssemblyName($api).Version.Major -ne $major) { throw "Wrong Revit API version: $api" }
     }
-    $output = "bin\Package${year}_1_6_0\"
-    $intermediate = "obj\Package${year}_1_6_0\"
+    $output = "bin\Package${year}_1_7_0\"
+    $intermediate = "obj\Package${year}_1_7_0\"
     & $msbuild (Join-Path $root 'MEP_Align_Round_Duct_3D_ver1.csproj') /t:Rebuild /p:Configuration=Release "/p:RevitVersion=$year" "/p:RevitApiDir=$apiDir" "/p:OutputPath=$output" "/p:IntermediateOutputPath=$intermediate" /nologo /verbosity:minimal
     if ($LASTEXITCODE -ne 0) { throw "Add-in build failed for $year" }
-    $folder = Join-Path $root "dist\HoL_DuctAlign_Revit${year}_1.6.0"
+    $folder = Join-Path $root "dist\HoL_DuctAlign_Revit${year}_1.7.0"
     [IO.Directory]::CreateDirectory($folder) | Out-Null
     $dll = Join-Path (Join-Path $root $output) "HoL.DuctAlign.Revit${year}.dll"
     $exe = Join-Path $folder 'HoL_DuctAlign_Setup.exe'

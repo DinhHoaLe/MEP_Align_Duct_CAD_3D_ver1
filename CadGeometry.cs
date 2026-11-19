@@ -88,7 +88,11 @@ namespace MEP_Align_Round_Duct_3D_ver1
         private string pickedStable;
         private bool exactFound;
         private const int Limit = 2000000;
-        public string Diagnostics { get { return string.Format("Da doc {0} solid, {1} mesh, {2} polyline. Bo qua {3} hinh hoc khong doc duoc.", solids, meshes, polylines, errors); } }
+        private readonly List<string> rejectionDetails = new List<string>();
+        private void Note(string reason)
+        { if (rejectionDetails.Count < 8 && !rejectionDetails.Contains(reason)) rejectionDetails.Add(reason); }
+        public string Diagnostics { get { return string.Format("Da doc {0} solid, {1} mesh, {2} polyline. Bo qua {3} hinh hoc khong doc duoc.", solids, meshes, polylines, errors) +
+            (duct == null ? "" : "\nDuct: " + duct.Size) + "\n" + string.Join("\n", rejectionDetails); } }
         public CadReader(Document document, DuctFrame frame, XYZ point) { doc = document; duct = frame; hit = point; }
 
         public List<AxisCandidate> Read(ImportInstance cad)
@@ -103,10 +107,42 @@ namespace MEP_Align_Round_Duct_3D_ver1
             using (GeometryElement geometry = cad.get_Geometry(options))
             {
                 if (duct.Round) Walk(geometry, Transform.Identity, "");
-                else ReadRectBlocks(geometry);
+                else ReadPickedCenterLines(geometry, Transform.Identity, "");
             }
             if (primitives >= Limit && !exactFound) throw new InvalidOperationException("Khong xac dinh duoc khoi da pick trong gioi han doc. Khong tu chon khoi khac.");
             return found.OrderBy(c => c.ClickDistance).Take(20).ToList();
+        }
+        private void ReadPickedCenterLines(IEnumerable<GeometryObject> geometry, Transform transform, string inheritedLayer)
+        {
+            if (geometry == null) return;
+            foreach (var obj in geometry)
+            {
+                if (exactFound) return;
+                if (++primitives >= Limit) throw new InvalidOperationException("Vuot gioi han doc net CAD.");
+                var instance = obj as GeometryInstance;
+                if (instance != null)
+                {
+                    using (var symbol = instance.GetSymbolGeometry())
+                    {
+                        var child = transform.Multiply(instance.Transform);
+                        if (ContainsHit(symbol.GetBoundingBox(), child))
+                            ReadPickedCenterLines(symbol, child, Layer(obj, inheritedLayer));
+                    }
+                    continue;
+                }
+                var line = obj as Line;
+                var poly = obj as PolyLine;
+                if (line == null && poly == null) continue;
+                if (line != null && !line.IsBound) continue;
+                var points = line != null
+                    ? new List<XYZ> { transform.OfPoint(line.GetEndPoint(0)), transform.OfPoint(line.GetEndPoint(1)) }
+                    : poly.GetCoordinates().Select(transform.OfPoint).ToList();
+                bool exact = line != null && Matches(line.Reference);
+                if (!exact && !OnPolyline(points)) continue;
+                if (exact) found.Clear();
+                ReadCenterLine(points, Layer(obj, inheritedLayer));
+                if (exact) exactFound = true;
+            }
         }
         private void Walk(GeometryElement geometry, Transform transform, string inheritedLayer)
         {
@@ -274,12 +310,12 @@ namespace MEP_Align_Round_Duct_3D_ver1
         }
         private void ReadSolid(Solid solid, Transform tr, string layer)
         {
-            if (solid.Faces.Size == 0) return;
+            if (solid.Faces.Size == 0) { Note("Solid rong, khong co mat."); return; }
             List<CylindricalFace> cylinders = new List<CylindricalFace>();
             foreach (Face face in solid.Faces)
             {
                 if (face is CylindricalFace) cylinders.Add((CylindricalFace)face);
-                else if (!(face is PlanarFace)) return; // Elbows, reducers and curved transitions are not straight ducts.
+                else if (!(face is PlanarFace)) { Note("Solid co mat cong: " + face.GetType().Name + " | " + layer); return; }
             }
             if (duct.Round)
             {
@@ -305,11 +341,11 @@ namespace MEP_Align_Round_Duct_3D_ver1
             }
             else
             {
-                if (cylinders.Count > 0) return;
+                if (cylinders.Count > 0) { Note("Solid co mat tru, khong phai hop chu nhat | " + layer); return; }
                 List<XYZ> vertices = new List<XYZ>();
                 foreach (Edge edge in solid.Edges)
                 {
-                    Curve c = edge.AsCurve(); if (!(c is Line)) return;
+                    Curve c = edge.AsCurve(); if (!(c is Line)) { Note("Canh solid khong thang: " + c.GetType().Name + " | " + layer); return; }
                     vertices.Add(tr.OfPoint(c.GetEndPoint(0))); vertices.Add(tr.OfPoint(c.GetEndPoint(1)));
                 }
                 Box(vertices, layer, "CAD solid hop");
@@ -317,15 +353,17 @@ namespace MEP_Align_Round_Duct_3D_ver1
         }
         private void Box(List<XYZ> points, string layer, string source)
         {
-            if (points.Count < 8) return;
+            if (points.Count < 8) { Note("Khong du dinh de nhan khoi hop | " + layer); return; }
             XYZ anchor = points[0];
             XYZ[] basis = { duct.Axis, duct.WidthAxis, duct.HeightAxis };
             double[][] values = points.Select(p => basis.Select(v => (p - anchor).DotProduct(v)).ToArray()).ToArray();
             double[] lo = Enumerable.Range(0, 3).Select(i => values.Min(v => v[i])).ToArray();
             double[] hi = Enumerable.Range(0, 3).Select(i => values.Max(v => v[i])).ToArray();
             double tol = Units.Ft(0.1);
-            if (hi[0] - lo[0] < Units.Ft(20) || Math.Abs(hi[1] - lo[1] - duct.Width) > Units.Ft(2) ||
-                Math.Abs(hi[2] - lo[2] - duct.Height) > Units.Ft(2)) return;
+            Note(string.Format("CAD chieu theo truc duct: L={0:0.###}, W={1:0.###}, H={2:0.###} mm | {3}",
+                Units.Mm(hi[0] - lo[0]), Units.Mm(hi[1] - lo[1]), Units.Mm(hi[2] - lo[2]), layer));
+            if (hi[0] - lo[0] < Units.Ft(20) || hi[1] - lo[1] < tol || hi[2] - lo[2] < tol)
+            { Note("Khoi CAD qua ngan hoac tiet dien suy bien."); return; }
             // Require all eight actual box corners; do not accept the bounding box of a reducer/tee.
             HashSet<int> corners = new HashSet<int>();
             foreach (double[] v in values)
@@ -335,11 +373,11 @@ namespace MEP_Align_Round_Duct_3D_ver1
                 {
                     if (Math.Abs(v[i] - lo[i]) <= tol) { }
                     else if (Math.Abs(v[i] - hi[i]) <= tol) key |= 1 << i;
-                    else return;
+                    else { Note("Dinh CAD khong nam tren goc hop theo truc duct: khoi khong hop hoac khac huong."); return; }
                 }
                 corners.Add(key);
             }
-            if (corners.Count != 8) return;
+            if (corners.Count != 8) { Note("Khong du 8 goc hop CAD."); return; }
             XYZ origin = anchor + duct.WidthAxis * ((lo[1] + hi[1]) / 2) + duct.HeightAxis * ((lo[2] + hi[2]) / 2);
             Add(new AxisCandidate { Origin = origin, Axis = duct.Axis, Min = lo[0], Max = hi[0], Layer = layer, Source = source });
         }
@@ -359,7 +397,7 @@ namespace MEP_Align_Round_Duct_3D_ver1
             XYZ centre = corners.Aggregate(XYZ.Zero, (sum, p) => sum + p) / 4;
             double w = corners.Max(p => (p - centre).DotProduct(duct.WidthAxis)) - corners.Min(p => (p - centre).DotProduct(duct.WidthAxis));
             double h = corners.Max(p => (p - centre).DotProduct(duct.HeightAxis)) - corners.Min(p => (p - centre).DotProduct(duct.HeightAxis));
-            if (Math.Abs(w - duct.Width) > Units.Ft(2) || Math.Abs(h - duct.Height) > Units.Ft(2)) return;
+            if (w < tol || h < tol) return;
             // Check all four corners, including the otherwise unchecked closing sides.
             if (corners.Any(p => Math.Abs(Math.Abs((p - centre).DotProduct(duct.WidthAxis)) - w / 2) > tol ||
                 Math.Abs(Math.Abs((p - centre).DotProduct(duct.HeightAxis)) - h / 2) > tol ||
